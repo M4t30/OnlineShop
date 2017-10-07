@@ -6,4 +6,5 @@
 		die();
 	}
 	
-	define('BASEURL', '/onlineShop/');
+	require_once '../config.php';
+	require_once BASEURL.'helpers/helpers.php';

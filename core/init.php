@@ -6,5 +6,5 @@
 		die();
 	}
 	
-	require_once '../config.php';
+	require_once $_SERVER['DOCUMENT_ROOT'].'/onlineShop/config.php';
 	require_once BASEURL.'helpers/helpers.php';

@@ -6,6 +6,24 @@ include 'includes/navigation.php';
 $sql = "SELECT * FROM categories WHERE parent = 0";
 $result = $db->query($sql);
 $errors = array();
+
+//delete category
+if(isset($_GET['delete']) && !empty($_GET['delete'])){
+	$delete_id = (int)$_GET['delete'];
+	$delete_id = sanitize($delete_id);
+	$sql = "SELECT * FROM categories WHERE id = '$delete_id'";
+	$result = $db->query($sql);
+	$category = mysqli_fetch_assoc($result);
+	if($category['parent'] == 0){
+		$sql = "DELETE FROM categories WHERE parent = '$delete_id'";
+		$db->query($sql);
+	}
+	$dsql = "DELETE FROM categories WHERE id = '$delete_id'";
+	$db->query($dsql);
+	header('Location: categories.php');
+	
+}
+
 //Process Form
 if(isset($_POST) && !empty($_POST)){
 	$parent = sanitize($_POST['parent']);
@@ -103,7 +121,7 @@ if(isset($_POST) && !empty($_POST)){
 						<td><?=$parent['category']; ?></td>
 						<td>
 							<a href="categories.php?edit=<?=$child['id']; ?>" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-pencil"></span></a>
-							<a href="categories.php?delete=<?=$parent['id']; ?>" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-remove-sign"></span></a>
+							<a href="categories.php?delete=<?=$child['id']; ?>" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-remove-sign"></span></a>
 						</td>
 					</tr>
 					<?php endwhile; ?>

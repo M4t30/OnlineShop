@@ -8,6 +8,18 @@ if(isset($_GET['add'])){
 	$parentQuery = $db->query("SELECT * FROM categories WHERE parent = 0 ORDER BY category");
 	$sizesArray = array();
 	if($_POST){
+		$title = sanitize($_POST['title']);
+		$brand = sanitize($_POST['brand']);
+		$categories = sanitize($_POST['child']);
+		$price = sanitize($_POST['price']);
+		$list_price = sanitize($_POST['list_price']);
+		$sizes = sanitize($_POST['sizes']);
+		$description = sanitize($_POST['description']);
+		$photo = $_FILES['photo'];
+		$dbpath = '';
+		$tmpLoc = '';
+		$uploadPath = '';
+		$errors = array();
 		if(!empty($_POST['sizes'])){
 			$sizeString = sanitize($_POST['sizes']);
 			$sizeString = rtrim($sizeString,',');
@@ -22,6 +34,62 @@ if(isset($_GET['add'])){
 		}
 		else{
 			$sizesArray = array();
+		}
+		
+		$required = array('title', 'brand', 'price', 'parent', 'child', 'sizes');
+		foreach($required as $field){
+			if($_POST[$field] == ''){
+				$errors[] = 'All Fields With and Astrisk are required.';
+				break;
+			}	
+		}
+		
+		if($photo['name'] != '' && $photo['type'] != ''){
+			var_dump($_FILES);
+			$photo = $_FILES['photo'];
+			$name = $photo['name'];
+			$nameArray = explode('.', $name);
+			$fileName = $nameArray[0];
+			$fileExt = $nameArray[1];
+			$mime = explode('/', $photo['type']);
+			$mimeType = $mime[0];
+			$mimeExt = $mime[1];
+			$tmpLoc = $photo['tmp_name'];
+			$fileSize = $photo['size'];
+			$allowed = array('png', 'jpg', 'jpeg', 'gif');
+			$uploadName = md5(microtime()).'.'.$fileExt;
+			$uploadPath = BASEURL.'images/products/'.$uploadName;
+			$dbpath = '/onlineShop/images/products/'.$uploadName;
+			if($mimeType != 'image'){
+				$errors[] = 'The file must be an image.';
+			}
+			
+			if(!in_array($fileExt, $allowed)){
+				$errors[] = 'The photo extension must be a png, jpg, jpeg or gif.';
+			}
+			
+			if($fileSize > 15000000){
+				$errors[] = 'The files size must be under 15MB.';
+			}
+			
+			if($fileExt != $mimeExt && ($mimeExt == 'jpeg' && $fileExt != 'jpg')){
+				$errors[] = 'File extension does not match the file.';
+				
+			}
+		}
+		
+		if(!empty($errors)){
+			echo display_errors($errors);
+		}
+		
+		else{
+			//upload file and insert into database
+			move_uploaded_file($tmpLoc, $uploadPath);
+			$insertSql = "INSERT INTO products (`title`, `price`, `list_price`, `brand`, `categories`, `sizes`, `image`, `description`)
+						  VALUES ('$title', '$price', '$list_price', '$brand', '$categories', '$sizes', '$dbpath', '$description')";
+		
+			$db->query($insertSql);
+			header('Location: products.php');
 		}
 	}
 	?> 

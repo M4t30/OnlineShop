@@ -6,6 +6,24 @@ include 'includes/navigation.php';
 if(isset($_GET['add'])){
 	$brandQuery = $db->query("SELECT * FROM brand ORDER BY brand");
 	$parentQuery = $db->query("SELECT * FROM categories WHERE parent = 0 ORDER BY category");
+	$sizesArray = array();
+	if($_POST){
+		if(!empty($_POST['sizes'])){
+			$sizeString = sanitize($_POST['sizes']);
+			$sizeString = rtrim($sizeString,',');
+			$sizesArray = explode(',', $sizeString);
+			$sArray = array();
+			$qArray = array();
+			foreach($sizesArray as $ss){
+				$s = explode(':', $ss);
+				$sArray[] = $s[0];
+				$qArray[] = $s[1];
+			}
+		}
+		else{
+			$sizesArray = array();
+		}
+	}
 	?> 
 	<h2 class="text-center">Add a New Product</h2><hr>
 	<form action="products.php?add=1" method="POST" enctype="multipart/form-data">
@@ -51,7 +69,7 @@ if(isset($_GET['add'])){
 		</div>
 		<div class="form-group col-md-3">
 			<label for="sizes">Sizes & Quantity Preview</label>
-			<input type="text" class="form-control" name="size" id="size" value="<?=((isset($_POST['sizes']))?$_POST['sizes']:''); ?>" readonly>
+			<input type="text" class="form-control" name="sizes" id="sizes" value="<?=((isset($_POST['sizes']))?$_POST['sizes']:''); ?>" readonly>
 		</div>
 		<div class="form-group col-md-6">
 			<label for="photo">Product Photo:</label>
@@ -65,6 +83,39 @@ if(isset($_GET['add'])){
 		<input type="submit" value="Add Product" class="form-control btn btn-success">
 		</div><div class="clearfix"></div>
 	</form>
+	<!-- Modal -->
+	<div class="modal fade" id="sizesModal" tabindex="-1" role="dialog" aria-labelledby="sizesModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="sizesModalLabel">Size & Quantity</h4>
+				<div>
+				<div class="modal-body">
+				<div class="container-fluid">
+					<?php for($i=1; $i <= 12; $i++): ?>
+						<div class="form-group col-md-4">
+							<label for="size<?=$i; ?>">Size:</label>
+							<input type="text" name="size<?=$i;?>" id="size<?=$i;?>" value="<?=((!empty($sArray[$i-1]))?$sArray[$i-1]:''); ?>" class="form-control">
+						</div>
+						<div class="form-group col-md-2">
+							<label for="qty<?=$i; ?>">Quantity:</label>
+							<input type="number" name="qty<?=$i;?>" id="qty<?=$i;?>" value="<?=((!empty($qArray[$i-1]))?$qArray[$i-1]:''); ?>" min="0" class="form-control">
+						</div>
+					<?php endfor; ?>
+				</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary" onclick="updateSizes(); $('#sizesModal').modal('toggle'); return false;">Save changes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+			
+	
+	
+	
 <?php } else{
 	
 $sql = "SELECT * FROM products WHERE deleted = 0";

@@ -3,13 +3,26 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/onlineShop/core/init.php';
 include 'includes/head.php';
 include 'includes/navigation.php';
 
-if(isset($_GET['add'])){
+if(isset($_GET['add']) || isset($_GET['edit'])){
 	$brandQuery = $db->query("SELECT * FROM brand ORDER BY brand");
 	$parentQuery = $db->query("SELECT * FROM categories WHERE parent = 0 ORDER BY category");
 	$sizesArray = array();
+	$title = ((isset($_POST['title']) && $_POST['title'] != '')?sanitize($_POST['title']):'');
+	$brand = ((isset($_POST['brand']) && !empty($_POST['brand']))?sanitize($_POST['brand']):'');
+	$parent = ((isset($_POST['parent']) && !empty($_POST['parent']))?sanitize($_POST['parent']):'');
+	$category = ((isset($_POST['child']) && !empty($_POST['child']))?sanitize($_POST['child']):'');
+		if(isset($_GET['edit'])){
+			$edit_id = (int)$_GET['edit'];
+			$productResults = $db->query("SELECT * FROM products WHERE id = '$edit_id'");
+			$product = mysqli_fetch_assoc($productResults);
+			$category = ((isset($_POST['child']) && $_POST['child'] != '')?sanitize($_POST['child']):$product['categories']);
+			$title = ((isset($_POST['title']) && $_POST['title'] != '')?sanitize($_POST['title']):$product['title']);
+			$brand = ((isset($_POST['brand']) && $_POST['brand'] != '')?sanitize($_POST['brand']):$product['brand']);
+			$parentQ = $db->query("SELECT * FROM categories WHERE id = '$category'");
+			$parentResult = mysqli_fetch_assoc($parentQ);
+			$parent = ((isset($_POST['parent']) && $_POST['parent'] != '')?sanitize($_POST['parent']):$parentResult['parent']);
+		}
 	if($_POST){
-		$title = sanitize($_POST['title']);
-		$brand = sanitize($_POST['brand']);
 		$categories = sanitize($_POST['child']);
 		$price = sanitize($_POST['price']);
 		$list_price = sanitize($_POST['list_price']);
@@ -93,27 +106,27 @@ if(isset($_GET['add'])){
 		}
 	}
 	?> 
-	<h2 class="text-center">Add a New Product</h2><hr>
-	<form action="products.php?add=1" method="POST" enctype="multipart/form-data">
+	<h2 class="text-center"><?=((isset($_GET['edit']))?'Edit':'Add a new');?> Product</h2><hr>
+	<form action="products.php?<?=((isset($_GET['edit']))?'edit='.$edit_id:'add=1'); ?>" method="POST" enctype="multipart/form-data">
 		<div class="form-group col-md-3">
 			<label for="title">Title*:</label>
-			<input type="text" name="title" class="form-control" id="title" value="<?=((isset($_POST['title']))?sanitize($_POST['title']):'');?>">
+			<input type="text" name="title" class="form-control" id="title" value="<?=$title;?>">
 		</div>
 		<div class="form-group col-md-3">
 			<label for="brand">Brand*:</label>
 			<select class="form-control" id="brand" name="brand">
-				<option value=""<?=((isset($_POST['brand']) && $_POST['brand'] == '')? ' selected':'')?></option>
-				<?php while($brand = mysqli_fetch_assoc($brandQuery)): ?>
-					<option value="<?=$brand['id'];?>"<?=((isset($_POST['brand']) && $_POST['brand'] == $brand['id'])?' selected':'');?>><?=$brand['brand'];?></option>
+				<option value=""<?=(($brand == '')? ' selected':'')?></option>
+				<?php while($b = mysqli_fetch_assoc($brandQuery)): ?>
+					<option value="<?=$b['id'];?>"<?=(($brand == $b['id'])?' selected':'');?>><?=$b['brand'];?></option>
 				<?php endwhile; ?>
 			</select>
 		</div>
 		<div class="form-group col-md-3">
 			<label for="parent">Parent Category*:</label>
 			<select class="form-control" id="parent" name="parent">
-			<option value=""<?=((isset($_POST['parent']) && $_POST['parent'] == '')?' selected':'');?>></option>
-				<?php while($parent = mysqli_fetch_assoc($parentQuery)): ?>
-					<option value="<?=$parent['id'];?>"<?=((isset($_POST['parent']) && $_POST['parent'] == $parent['id'])?' select':'');?>><?=$parent['category'];?></option>
+			<option value=""<?=(($parent == '')?' selected':'');?>></option>
+				<?php while($p = mysqli_fetch_assoc($parentQuery)): ?>
+					<option value="<?=$p['id'];?>"<?=(($parent == $p['id'])?' selected':'');?>><?=$p['category'];?></option>
 				<?php endwhile; ?>
 			</select>
 			</label>
@@ -148,7 +161,8 @@ if(isset($_GET['add'])){
 			<textarea id="description" name="description" class="form-control" rows="6"><?=((isset($_POST['description']))?sanitize($_POST['description']):''); ?></textarea>
 		</div>
 		<div class="form-group pull-right">
-		<input type="submit" value="Add Product" class="form-control btn btn-success">
+			<a href="products.php" class="btn btn-default">Cancel</a>
+		<input type="submit" value="<?= ((isset($_GET['edit']))?'Edit ':'Add '); ?>Product" class="btn btn-success">
 		</div><div class="clearfix"></div>
 	</form>
 	<!-- Modal -->

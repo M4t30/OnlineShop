@@ -2,6 +2,14 @@
 require_once $_SERVER['DOCUMENT_ROOT'].'/onlineShop/core/init.php';
 include 'includes/head.php';
 include 'includes/navigation.php';
+
+//Delete product
+if(isset($_GET['delete'])){
+	$id = sanitize($_GET['delete']);
+	$db->query("UPDATE products SET deleted = 1 WHERE id = '$id'");
+	header('Location: products.php');
+}
+
 $dbpath = '';
 if(isset($_GET['add']) || isset($_GET['edit'])){
 	$brandQuery = $db->query("SELECT * FROM brand ORDER BY brand");

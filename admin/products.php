@@ -2,7 +2,7 @@
 require_once $_SERVER['DOCUMENT_ROOT'].'/onlineShop/core/init.php';
 include 'includes/head.php';
 include 'includes/navigation.php';
-
+$dbpath = '';
 if(isset($_GET['add']) || isset($_GET['edit'])){
 	$brandQuery = $db->query("SELECT * FROM brand ORDER BY brand");
 	$parentQuery = $db->query("SELECT * FROM categories WHERE parent = 0 ORDER BY category");
@@ -11,30 +11,38 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 	$brand = ((isset($_POST['brand']) && !empty($_POST['brand']))?sanitize($_POST['brand']):'');
 	$parent = ((isset($_POST['parent']) && !empty($_POST['parent']))?sanitize($_POST['parent']):'');
 	$category = ((isset($_POST['child']) && !empty($_POST['child']))?sanitize($_POST['child']):'');
+	$price = ((isset($_POST['price']) && $_POST['price'] != '')?sanitize($_POST['price']):'');
+	$list_price = ((isset($_POST['list_price']) && $_POST['list_price'] != '')?sanitize($_POST['list_price']):'');
+	$description = ((isset($_POST['description']) && $_POST['description'] != '')?sanitize($_POST['description']):'');
+	$sizes = ((isset($_POST['sizes']) && $_POST['sizes'] != '')?sanitize($_POST['sizes']):'');
+	$sizes = rtrim($sizes,',');
+	$saved_image = '';
 		if(isset($_GET['edit'])){
 			$edit_id = (int)$_GET['edit'];
 			$productResults = $db->query("SELECT * FROM products WHERE id = '$edit_id'");
 			$product = mysqli_fetch_assoc($productResults);
+			if(isset($_GET['delete_image'])){
+				$image_url = $_SERVER['DOCUMENT_ROOT'].$product['image'];echo $image_url;
+				unlink($image_url);
+				$db->query("UPDATE products SET image = '' WHERE id = '$edit_id'");
+				header('Location: products.php?edit='.$edit_id);
+			}
 			$category = ((isset($_POST['child']) && $_POST['child'] != '')?sanitize($_POST['child']):$product['categories']);
 			$title = ((isset($_POST['title']) && $_POST['title'] != '')?sanitize($_POST['title']):$product['title']);
 			$brand = ((isset($_POST['brand']) && $_POST['brand'] != '')?sanitize($_POST['brand']):$product['brand']);
 			$parentQ = $db->query("SELECT * FROM categories WHERE id = '$category'");
 			$parentResult = mysqli_fetch_assoc($parentQ);
 			$parent = ((isset($_POST['parent']) && $_POST['parent'] != '')?sanitize($_POST['parent']):$parentResult['parent']);
+			$price = ((isset($_POST['price']) && $_POST['price'] != '')?sanitize($_POST['price']):$product['price']);
+			$list_price = ((isset($_POST['list_price']) && $_POST['list_price'] != '')?sanitize($_POST['list_price']):$product['list_price']);
+			$description = ((isset($_POST['description']) && $_POST['description'] != '')?sanitize($_POST['description']):$product['description']);
+			$sizes = ((isset($_POST['sizes']) && $_POST['sizes'] != '')?sanitize($_POST['sizes']):$product['sizes']);
+			$sizes = rtrim($sizes,',');
+			$saved_image = (($product['image'] != '')?$product['image']:'');
+			$dbpath= $saved_image;
 		}
-	if($_POST){
-		$categories = sanitize($_POST['child']);
-		$price = sanitize($_POST['price']);
-		$list_price = sanitize($_POST['list_price']);
-		$sizes = sanitize($_POST['sizes']);
-		$description = sanitize($_POST['description']);
-		$photo = $_FILES['photo'];
-		$dbpath = '';
-		$tmpLoc = '';
-		$uploadPath = '';
-		$errors = array();
-		if(!empty($_POST['sizes'])){
-			$sizeString = sanitize($_POST['sizes']);
+		if(!empty($sizes)){
+			$sizeString = sanitize($sizes);
 			$sizeString = rtrim($sizeString,',');
 			$sizesArray = explode(',', $sizeString);
 			$sArray = array();
@@ -48,15 +56,23 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 		else{
 			$sizesArray = array();
 		}
-		
+
+	if($_POST){
+
+		$photo = $_FILES['photo'];
+		$dbpath = '';
+		$tmpLoc = '';
+		$uploadPath = '';
+		$errors = array();
+
 		$required = array('title', 'brand', 'price', 'parent', 'child', 'sizes');
 		foreach($required as $field){
 			if($_POST[$field] == ''){
 				$errors[] = 'All Fields With and Astrisk are required.';
 				break;
-			}	
+			}
 		}
-		
+
 		if($photo['name'] != '' && $photo['type'] != ''){
 			var_dump($_FILES);
 			$photo = $_FILES['photo'];
@@ -76,36 +92,40 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 			if($mimeType != 'image'){
 				$errors[] = 'The file must be an image.';
 			}
-			
+
 			if(!in_array($fileExt, $allowed)){
 				$errors[] = 'The photo extension must be a png, jpg, jpeg or gif.';
 			}
-			
+
 			if($fileSize > 15000000){
 				$errors[] = 'The files size must be under 15MB.';
 			}
-			
+
 			if($fileExt != $mimeExt && ($mimeExt == 'jpeg' && $fileExt != 'jpg')){
 				$errors[] = 'File extension does not match the file.';
-				
+
 			}
 		}
-		
+
 		if(!empty($errors)){
 			echo display_errors($errors);
 		}
-		
+
 		else{
 			//upload file and insert into database
 			move_uploaded_file($tmpLoc, $uploadPath);
 			$insertSql = "INSERT INTO products (`title`, `price`, `list_price`, `brand`, `categories`, `sizes`, `image`, `description`)
-						  VALUES ('$title', '$price', '$list_price', '$brand', '$categories', '$sizes', '$dbpath', '$description')";
-		
+				 VALUES ('$title', '$price', '$list_price', '$brand', '$category', '$sizes', '$dbpath', '$description')";
+				if(isset($_GET['edit'])){
+					$insertSql = "UPDATE products SET title = '$title', price = '$price', list_price = '$list_price',
+					brand = '$brand', categories = '$category', sizes = '$sizes', image = '$dbpath', description = '$description'
+					WHERE id ='$edit_id'";
+				}
 			$db->query($insertSql);
 			header('Location: products.php');
 		}
 	}
-	?> 
+	?>
 	<h2 class="text-center"><?=((isset($_GET['edit']))?'Edit':'Add a new');?> Product</h2><hr>
 	<form action="products.php?<?=((isset($_GET['edit']))?'edit='.$edit_id:'add=1'); ?>" method="POST" enctype="multipart/form-data">
 		<div class="form-group col-md-3">
@@ -135,14 +155,14 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 			<label for="child">Child Category*:</label>
 			<select id="child" name="child" class="form-control">
 			</select>
-		</div>		
-		<div class="form-group col-md-3">
-			<label for="price">Price*:</label>
-			<input type="text" id="price" name="price" class="form-control" value="<?=((isset($_POST['price']))?sanitize($_POST['price']):''); ?>">
 		</div>
 		<div class="form-group col-md-3">
-			<label for="price">List price*:</label>
-			<input type="text" id="price" name="list_price" class="form-control" value="<?=((isset($_POST['list_price']))?sanitize($_POST['list_price']):''); ?>">
+			<label for="price">Price*:</label>
+			<input type="text" id="price" name="price" class="form-control" value="<?=$price; ?>">
+		</div>
+		<div class="form-group col-md-3">
+			<label for="list_price">List price*:</label>
+			<input type="text" id="price" name="list_price" class="form-control" value="<?=$list_price; ?>">
 		</div>
 		<div class="form-group col-md-3">
 			<label>Quantity & Sizes*:</label>
@@ -150,15 +170,22 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 		</div>
 		<div class="form-group col-md-3">
 			<label for="sizes">Sizes & Quantity Preview</label>
-			<input type="text" class="form-control" name="sizes" id="sizes" value="<?=((isset($_POST['sizes']))?$_POST['sizes']:''); ?>" readonly>
+			<input type="text" class="form-control" name="sizes" id="sizes" value="<?=$sizes; ?>" readonly>
 		</div>
 		<div class="form-group col-md-6">
-			<label for="photo">Product Photo:</label>
-			<input type="file" name="photo" id="photo" class="form-control">
+			<?php if($saved_image != ''): ?>
+				<div class="saved_image">
+					<img src="<?=$saved_image;?>" alt="saved image"/><br>
+					<a href="products.php?delete_image=1&edit=<?=$edit_id;?>" class="text-danger">Delete Image</a>
+				</div>
+			<?php else: ?>
+				<label for="photo">Product Photo:</label>
+				<input type="file" name="photo" id="photo" class="form-control">
+			<?php endif; ?>
 		</div>
 		<div class="form-group col-md-6">
 			<label for="description">Description:</label>
-			<textarea id="description" name="description" class="form-control" rows="6"><?=((isset($_POST['description']))?sanitize($_POST['description']):''); ?></textarea>
+			<textarea id="description" name="description" class="form-control" rows="6"><?=$description; ?></textarea>
 		</div>
 		<div class="form-group pull-right">
 			<a href="products.php" class="btn btn-default">Cancel</a>
@@ -194,12 +221,12 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 			</div>
 		</div>
 	</div>
-			
-	
-	
-	
+
+
+
+
 <?php } else{
-	
+
 $sql = "SELECT * FROM products WHERE deleted = 0";
 $presults = $db->query($sql);
 if(isset($_GET['featured'])){
@@ -208,7 +235,7 @@ if(isset($_GET['featured'])){
 	$featuredSql = "UPDATE products SET featured = '$featured' WHERE id = '$id'";
 	$db->query($featuredSql);
 	header('Location: products.php');
-	
+
 }
 ?>
 
@@ -218,7 +245,7 @@ if(isset($_GET['featured'])){
 <table class="table table-bordered table-condensed table-striped">
 	<thead><th></th><th>Product</th><th>Price</th><th>Categories</th><th>Feature</th><th>Sold</th></thead>
 	<tbody>
-		<?php while($product = mysqli_fetch_assoc($presults)) : 
+		<?php while($product = mysqli_fetch_assoc($presults)) :
 			$childID = $product['categories'];
 			$catSql = "SELECT * FROM categories WHERE id = '$childID'";
 			$result = $db->query($catSql);
@@ -246,6 +273,12 @@ if(isset($_GET['featured'])){
 	</tbody>
 </table>
 
-<?php } 
+<?php }
 
-include 'includes/footer.php';
+include 'includes/footer.php';?>
+<script>
+	$('document').ready(function(){
+		get_child_options('<?=$category;?>');
+
+	});
+</script>

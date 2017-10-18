@@ -69,9 +69,7 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 		}
 
 	if($_POST){
-
 		$photo = $_FILES['photo'];
-		$dbpath = '';
 		$tmpLoc = '';
 		$uploadPath = '';
 		$errors = array();
@@ -124,12 +122,14 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 
 		else{
 			//upload file and insert into database
-			move_uploaded_file($tmpLoc, $uploadPath);
+			if(!empty($_FILES)){
+				move_uploaded_file($tmpLoc, $uploadPath);
+			}
 			$insertSql = "INSERT INTO products (`title`, `price`, `list_price`, `brand`, `categories`, `sizes`, `image`, `description`)
 				 VALUES ('$title', '$price', '$list_price', '$brand', '$category', '$sizes', '$dbpath', '$description')";
 				if(isset($_GET['edit'])){
-					$insertSql = "UPDATE products SET title = '$title', price = '$price', list_price = '$list_price',
-					brand = '$brand', categories = '$category', sizes = '$sizes', image = '$dbpath', description = '$description'
+					$insertSql = "UPDATE products SET `title` = '$title', `price` = '$price', `list_price` = '$list_price',
+					`brand` = '$brand', `categories` = '$category', `sizes` = '$sizes', `image` = '$dbpath', `description` = '$description'
 					WHERE id ='$edit_id'";
 				}
 			$db->query($insertSql);

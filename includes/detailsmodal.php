@@ -26,6 +26,7 @@ $size_array = explode(',', $sizestring);
 				<div class="modal-body">
 					<div class="container-fluid">
 						<div class="row">
+						<span id="modal_errors" class="bg-danger"></span>
 							<div class="col-sm-6">
 								<div class="center-block"><img src="<?= $product['image']; ?>" alt="<?= $product['title']; ?>" class="details img-responsive"></div>
 							</div>
@@ -35,7 +36,9 @@ $size_array = explode(',', $sizestring);
 								<hr>
 								<p>Price: $<?= $product['price']; ?></p>
 								<p>Brand: <?= $brand['brand']; ?></p>
-								<form action="add_cart.php" method="post">
+								<form action="add_cart.php" method="post" id="add_product_form">
+								  <input type="hidden" name="product_id" value="<?=$id;?>">
+							      <input type="hidden" name="available" id="available" value="">
 									<div class="form-group">
 										<div class="col-xs-3">
 											<label for="quantity">Quantity:</label>
@@ -50,8 +53,8 @@ $size_array = explode(',', $sizestring);
 											<?php foreach($size_array as $string){
 												$string_array = explode(':', $string);
 												$size = $string_array[0];
-												$quantity = $string_array[1];
-												echo '<option value="'.$size.'">'.$size.' ('.$quantity.' Available)</option>';
+												$available = $string_array[1];
+												echo '<option value="'.$size.'" data-available="'.$available.'">'.$size.' ('.$available.' Available)</option>';
 											}?>
 										</select>
 									</div>
@@ -63,13 +66,20 @@ $size_array = explode(',', $sizestring);
 	
 				<div class="modal-footer">
 					<button class="btn btn-default" onclick="closeModal()" >Close</button>
-					<button class="btn brn-warning" type="submit"><span class="glyphicon glyphicon-shopping-cart"></span>Add to cart</button>
+					<button class="btn brn-warning" onclick="add_to_cart();return false;"><span class="glyphicon glyphicon-shopping-cart"></span>Add to cart</button>
 				</div>
 			</div>
 		</div>
 	</div>
 	
 	<script>
+	
+		$('#size').change(function(){
+			var available = $('#size option:selected').data("available");
+			$('#available').val(available); 
+			
+		});
+	
 		function closeModal(){
 			$('#details-modal').modal('hide');
 			setTimeout(function(){

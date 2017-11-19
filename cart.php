@@ -89,18 +89,96 @@
 			</button>
 			
 			<div class="modal fade" id="checkoutModal" tabindex="-1" role="dialog" aria-labelledby="checkoutModalLabel">
-				<div dlass="modal-dialog" role="document">
+				<div dlass="modal-dialog modal-lg" role="document">
 					<div class="modal-content">
 						<div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-							<h4 class="modal-tittle" id="checkoutModalLabel">Modal title</h4>
+							<h4 class="modal-tittle" id="checkoutModalLabel">Shipping Address</h4>
 						</div>
 						<div class="modal-body">
-							...
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-							<button type="button" class="btn btn-primary">Save changes</button>
+						<div class="row">
+							<form action="thankYou.php" method="post" id="payment-form">
+								<span class="bg-danger" id="payment-errors"></span>
+								<div id="step1" style="display:block;">
+									<div class="form-group col-md-6">
+										<label for="full_name">Full Name:</label>
+										<input class="form-control" id="full_name" name="full_name" type="text">
+									</div>
+									<div class="form-group col-md-6">
+										<label for="email">Email:</label>
+										<input class="form-control" id="email" name="email" type="email">
+									</div>
+									<div class="form-group col-md-6">
+										<label for="street">Street Address:</label>
+										<input class="form-control" id="street" name="street" type="text">
+									</div>
+									<div class="form-group col-md-6">
+										<label for="street2">Street Address 2:</label>
+										<input class="form-control" id="street2" name="street2" type="text">
+									</div>
+									<div class="form-group col-md-6">
+										<label for="city">City:</label>
+										<input class="form-control" id="city" name="city" type="text">
+									</div>
+									<div class="form-group col-md-6">
+										<label for="state">State:</label>
+										<input class="form-control" id="state" name="state" type="text">
+									</div>
+									<div class="form-group col-md-6">
+										<label for="zip_code">Zip Code:</label>
+										<input class="form-control" id="zip_code" name="zip_code" type="text">
+									</div>
+									<div class="form-group col-md-6">
+										<label for="country">Country:</label>
+										<input class="form-control" id="country" name="country" type="text">
+									</div>
+								</div>
+								
+								<div id="step2" style="display:none;">
+									
+									<div class="form-group col-md-3">
+										<label for="name">Name on Card:</label>
+										<input type="text" id="name" class="form-control">
+									</div>
+									<div class="form-group col-md-3">
+										<label for="number">Card Number:</label>
+										<input type="text" id="number" class="form-control">
+									</div>
+									<div class="form-group col-md-2">
+										<label for="cvc">CVC:</label>
+										<input type="text" id="cvc" class="form-control">
+									</div>
+									<div class="form-group col-md-2">
+										<label for="exp-month">Expire Month:</label>
+										<select id="exp-month" class="form-control">
+											<option value=""></option>
+											<?php for($i=1; $i < 13; $i++): ?>
+												<option value="<?=$i;?>"><?=$i;?></option>
+											<?php endfor; ?>
+										</select>
+									</div>
+									<div class="form-group col-md-2">
+										<label for="exp-year">Expire Year:</label>
+										<select id="exp-year" class="form-control">
+											<option value=""></option>
+											<?php $yr = date("Y"); ?>
+											<?php for($i=0; $i < 11; $i++): ?>
+												<option value="<?$yr+$i;?>"><?=$yr+$i;?></option>
+											<?php endfor; ?>
+										</select>
+									</div>
+									
+								</div>
+								
+							
+							</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+								<button type="button" class="btn btn-primary" onclick="check_address();" id="next_button">Next >></button>
+								<button type="button" class="btn btn-primary" onclick="back_address();" id="back_button" style="display:none;"><< Back</button>
+								<button type="submit" class="btn btn-primary" id="checkout_button" style="display:none;">Check Out >></button>
+						</form>
 						</div>
 					</div>
 				</div>
@@ -110,6 +188,51 @@
 		<?php endif; ?>
 	</div>
 </div>
+<script>
 
+function back_address(){
+	$('#payment-errors').html("");
+	$('#step1').css("display","block");
+	$('#step2').css("display","none");
+	$('#next_button').css("display","inline-block");
+	$('#back_button').css("display","none");
+	$('#checkout_button').css("display","none");
+	$('#checkoutModalLabel').html("Shipping Address");		
+}
+
+function check_address(){
+	var data = {
+		'full_name' : $('#full_name').val(),
+		'email' : $('#email').val(),
+		'street' : $('#street').val(),
+		'street2' : $('#street2').val(),
+		'city' : $('#city').val(),
+		'state' : $('#state').val(),
+		'zip_code' : $('#zip_code').val(),
+		'country' : $('#country').val(),
+	};
+	$.ajax({
+		url : '/onlineShop/admin/parsers/check_address.php',
+		method : 'POST',
+		data : data,
+		success : function(data){
+			if(data != 'passed'){
+				$('#payment-errors').html(data);
+			}
+			
+			if(data == 'passed'){
+				$('#payment-errors').html("");
+                $('#step1').css("display","none");
+				$('#step2').css("display","block");
+				$('#next_button').css("display","none");
+				$('#back_button').css("display","inline-block");
+				$('#checkout_button').css("display","inline-block");
+				$('#checkoutModalLabel').html("Enter Your Card Details");				
+			}
+		},
+		error : function(){alert("Something went wrong");},
+	});
+}
+</script>
 
 <?php include 'includes/footer.php'; ?>

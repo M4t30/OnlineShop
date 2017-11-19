@@ -137,5 +137,9 @@ img.details{
 	margin: 7% auto;
 	padding: 15px;
 	background-color: #fff;
+}
 
+.totals-table-header th{
+	text-align: center;
+	
 }

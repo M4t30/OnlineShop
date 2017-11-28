@@ -141,5 +141,9 @@ img.details{
 
 .totals-table-header th{
 	text-align: center;
-	
+
+}
+
+#cart_widget td, #recent_widget{
+	font-size: 12px;
 }

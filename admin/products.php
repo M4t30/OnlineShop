@@ -172,7 +172,7 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 			<input type="text" id="price" name="price" class="form-control" value="<?=$price; ?>">
 		</div>
 		<div class="form-group col-md-3">
-			<label for="list_price">List price*:</label>
+			<label for="list_price">List price:</label>
 			<input type="text" id="price" name="list_price" class="form-control" value="<?=$list_price; ?>">
 		</div>
 		<div class="form-group col-md-3">

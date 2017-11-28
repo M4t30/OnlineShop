@@ -6,7 +6,7 @@ $pquery = $db->query($sql);
 <!-- Top Nav Bar -->
 	<nav class="navbar navbar-default navbar-fixed-top">
 		<div class="container">
-			<a href="index.php" class="navbar-brand">Mazzz Guitars</a>
+			<a href="index.php" class="navbar-brand">Mazz Guitars</a>
 			<ul class="nav navbar-nav">
 			
 			<?php while($parent = mysqli_fetch_assoc($pquery)) : ?>

@@ -45,8 +45,8 @@ if(isset($_GET['add']) || isset($_GET['edit'])){
 			$parentResult = mysqli_fetch_assoc($parentQ);
 			$parent = ((isset($_POST['parent']) && $_POST['parent'] != '')?sanitize($_POST['parent']):$parentResult['parent']);
 			$price = ((isset($_POST['price']) && $_POST['price'] != '')?sanitize($_POST['price']):$product['price']);
-			$list_price = ((isset($_POST['list_price']) && $_POST['list_price'] != '')?sanitize($_POST['list_price']):$product['list_price']);
-			$description = ((isset($_POST['description']) && $_POST['description'] != '')?sanitize($_POST['description']):$product['description']);
+			$list_price = ((isset($_POST['list_price']))?sanitize($_POST['list_price']):$product['list_price']);
+			$description = ((isset($_POST['description']))?sanitize($_POST['description']):$product['description']);
 			$sizes = ((isset($_POST['sizes']) && $_POST['sizes'] != '')?sanitize($_POST['sizes']):$product['sizes']);
 			$sizes = rtrim($sizes,',');
 			$saved_image = (($product['image'] != '')?$product['image']:'');

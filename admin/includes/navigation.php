@@ -2,7 +2,7 @@
 <!-- Top Nav Bar -->
 	<nav class="navbar navbar-default navbar-fixed-top">
 		<div class="container">
-			<a href="/onlineShop/admin/index.php" class="navbar-brand">Mazzz Guitars Admin</a>
+			<a href="/onlineShop/admin/index.php" class="navbar-brand">Mazz Guitars Admin</a>
 			<ul class="nav navbar-nav">
 
 			<li><a href="brands.php">Brands</a></li>
